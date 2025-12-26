@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: seed
+    description: Raw data source from seeds
+    schema: raw
+    tables:
+      - name: Candy_Factories
+        description: Raw candy factory data
+      
+      - name: Candy_Products
+        description: Raw candy product data
+
+      - name: Candy_Sales
+        description: Raw sales data
+      
+      - name: Candy_Targets
+        description: sales target
+      
+      - name: uszips
+        description: US zip code data
