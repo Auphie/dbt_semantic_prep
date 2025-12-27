@@ -2,20 +2,16 @@ version: 2
 
 models:
   - name: stg_sales
-    description: "Staging model for raw sales data from the Candy_Sales seed."
+    description: "Staging model for order sales data from the Candy_Sales seed."
     columns:
-      - name: row_id
-        description: "Unique row identifier."
-        tests:
-          - not_null
-          - unique
-        data_type: integer
-      - name: order_id
-        description: "Unique order identifier."
+      - name: sale_id
+        description: "Unique sales identifier."
         tests:
           - not_null
           - unique
         data_type: string
+      - name: order_id
+        description: "Unique order identifier."
       - name: order_date
         description: "Date of order."
         tests:
@@ -54,15 +50,15 @@ models:
       - name: product_name
         description: "Product long name."
         data_type: string
-      - name: sales
+      - name: order_amount
         description: "Total sales value of order."
         data_type: numeric
       - name: units
         description: "Total units of order."
         data_type: integer
       - name: gross_profit
-        description: "Gross profit of order (sales - cost)."
+        description: "Gross profit of order (order_amount - order_cost)."
         data_type: numeric
-      - name: cost
+      - name: order_cost
         description: "Cost to manufacture."
         data_type: numeric

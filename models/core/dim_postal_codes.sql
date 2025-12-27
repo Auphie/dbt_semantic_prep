@@ -1,14 +1,14 @@
 WITH products AS (
 
-    SELECT * FROM {{ ref('stg_zipcodes') }}
+    SELECT * FROM {{ ref('stg_postal_codes') }}
 
 ),
 
 final AS (
 
     SELECT
-        {{ dbt_utils.generate_surrogate_key(['zip']) }} AS postal_code_key,
-        zip,
+        {{ dbt_utils.generate_surrogate_key(['postal_code']) }} AS postal_code_key,
+        postal_code,
         lat,
         lng,
         city,

@@ -9,6 +9,7 @@ final AS (
     SELECT
         {{ dbt_utils.generate_surrogate_key(['product_id']) }} AS product_key,
         {{ dbt_utils.generate_surrogate_key(['postal_code']) }} AS postal_code_key,
+        sale_id,
         order_id,
         order_date,
         ship_date,
@@ -17,13 +18,13 @@ final AS (
         -- country_region,
         -- city,
         -- state_province,
-        -- postal_code,
+        postal_code,
         -- division,
         -- region,
-        sales,
+        order_amount,
         units,
         gross_profit,
-        cost
+        order_cost
 
     FROM sales
 

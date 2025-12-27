@@ -1,12 +1,8 @@
-
-# Name your project! Project names should contain only lowercase characters
-# and underscores. A good package name should reflect your organization's
-# name or the intended use of these models
-name: 'dbt_semantic_prep'
-version: '1.0.0'
+name: "dbt_semantic_prep"
+version: "1.0.0"
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'dbt_semantic_prep'
+profile: "dbt_semantic_prep"
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -30,7 +26,11 @@ clean-targets:         # directories to be removed by `dbt clean`
 # directory as views. These settings can be overridden in the individual model
 # files using the `{{ config(...) }}` macro.
 seeds:
-  schema: raw
+  dbt_semantic_prep: # you must include the project name
+    schema: raw
+    uszips:
+      +column_types:
+        zip: varchar(10)
 
 models:
   dbt_semantic_prep:
