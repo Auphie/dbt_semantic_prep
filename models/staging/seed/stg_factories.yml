@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_factories
+    description: "Staging model for factory location data from the Candy_Factories seed."
+    columns:
+      - name: factory
+        description: "Factory name."
+        tests:
+          - not_null
+          - unique
+        data_type: string
+      - name: latitude
+        description: "Latitude coordinates of the factory."
+        tests:
+          - not_null
+        data_type: numeric
+      - name: longitude
+        description: "Longitude coordinates of the factory."
+        tests:
+          - not_null
+        data_type: numeric

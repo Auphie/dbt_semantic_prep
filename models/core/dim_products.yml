@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dim_products
+    description: "Dimension of products enriched with factory location info."
+    columns:
+      - name: product_key
+        description: "Surrogate key for product."
+        data_type: string
+        tests:
+          - not_null
+          - unique
+      - name: product_id
+        description: "Product unique identifier."
+        data_type: string
+        tests:
+          - not_null
+          - unique
+      - name: product_name
+        description: "Product descriptive name."
+        data_type: string
+      - name: division
+        description: "Product division."
+        data_type: string
+      - name: factory
+        description: "Factory name that produces the product."
+        data_type: string
+      - name: factory_latitude
+        description: "Latitude coordinate of the product's factory."
+        data_type: numeric
+      - name: factory_longitude
+        description: "Longitude coordinate of the product's factory."
+        data_type: numeric
+      - name: unit_price
+        description: "Selling price of the product."
+        data_type: numeric
+      - name: unit_cost
+        description: "Cost to produce the product."
+        data_type: numeric

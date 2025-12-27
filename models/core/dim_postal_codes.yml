@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: dim_postal_codes
+    description: "Dimension of US postal codes and related geography/metadata."
+    columns:
+      - name: postal_code_key
+        description: "Surrogate key for postal code."
+        data_type: string
+        tests:
+          - not_null
+          - unique
+      - name: zip
+        description: "The 5-digit zip code assigned by the U.S. Postal Service."
+        data_type: string
+        tests:
+          - not_null
+          - unique
+      - name: lat
+        description: "The latitude of the zip code."
+        data_type: numeric
+      - name: lng
+        description: "The longitude of the zip code."
+        data_type: numeric
+      - name: city
+        description: "The official USPS city name."
+        data_type: string
+      - name: state_id
+        description: "The official USPS state abbreviation."
+        data_type: string
+      - name: state_name
+        description: "The state's name."
+        data_type: string
+      - name: zcta
+        description: "TRUE if the zip code is a Zip Code Tabulation Area (ZCTA)."
+        data_type: boolean
+      - name: parent_zcta
+        description: "The ZCTA that contains this zip code (when zcta is FALSE)."
+        data_type: string
+      - name: population
+        description: "An estimate of the zip code's population."
+        data_type: integer
+      - name: density
+        description: "The estimated population per square kilometer."
+        data_type: numeric
+      - name: county_fips
+        description: "The zip's primary county in FIPS format."
+        data_type: string
+      - name: county_name
+        description: "The name of the primary county."
+        data_type: string
+      - name: county_weights
+        description: "JSON dictionary of county_fips and their area weights for the zip code."
+        data_type: string
+      - name: county_names_all
+        description: "All county names associated with this zip code (aggregated)."
+        data_type: string
+      - name: county_fips_all
+        description: "All county FIPS codes associated with this zip code (aggregated)."
+        data_type: string
+      - name: imprecise
+        description: "TRUE if the lat/lng was geolocated using the city (rare)."
+        data_type: boolean
+      - name: military
+        description: "TRUE if the zip code is used by the US Military (lat/lng may be unavailable)."
+        data_type: boolean
+      - name: timezone
+        description: "The city's time zone in tz database format (e.g. America/Los_Angeles)."
+        data_type: string
