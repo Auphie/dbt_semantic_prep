@@ -7,7 +7,7 @@ WITH zip_info AS (
 final AS (
 
     SELECT
-        zip,
+        zip AS postal_code,
         lat,
         lng,
         city,

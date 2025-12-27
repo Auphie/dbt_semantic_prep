@@ -13,13 +13,13 @@ factories AS (
 add_factory_info AS (
 
     SELECT
-        p.*,
-        f.latitude AS factory_latitude,
-        f.longitude AS factory_longitude
+        products.*,
+        factories.latitude AS factory_latitude,
+        factories.longitude AS factory_longitude
 
-    FROM products p
-    LEFT JOIN factories f
-        ON p.factory = f.factory
+    FROM products
+    LEFT JOIN factories
+        ON products.factory = factories.factory
 
 ),
 

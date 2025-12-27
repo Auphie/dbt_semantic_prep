@@ -1,15 +1,15 @@
 version: 2
 
 models:
-  - name: stg_zipcodes
+  - name: stg_postal_codes
     description: "Staging model for US zip code geography from the uszips seed."
     columns:
-      - name: zip
+      - name: postal_code
         description: "The 5-digit zip code assigned by the U.S. Postal Service."
         tests:
           - not_null
           - unique
-        data_type: string
+        data_type: varchar(10)
       - name: lat
         description: "Latitude of the zip code."
         data_type: numeric

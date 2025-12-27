@@ -10,7 +10,7 @@ models:
         tests:
           - not_null
           - unique
-      - name: zip
+      - name: postal_code
         description: "The 5-digit zip code assigned by the U.S. Postal Service."
         data_type: string
         tests:

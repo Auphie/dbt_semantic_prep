@@ -1,0 +1,97 @@
+name: dbt CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read # Explicitly grant read permission for the checkout action
+
+jobs:
+  linter-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core sqlfluff sqlfluff-templater-dbt
+
+      - name: Lint SQL with SQLFluff
+        run: sqlfluff lint models/  --dialect postgres --ignore templating
+
+  dbt-ci:
+    runs-on: ubuntu-latest
+    needs: [linter-check]
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: dbt_ci
+          POSTGRES_USER: dbt
+          POSTGRES_PASSWORD: dbtpass
+        ports:
+          - "5432:5432"
+        # Health check — ensures Postgres is fully ready
+        options: >-
+          --health-cmd="pg_isready -U dbt"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt-postgres
+        run: pip install dbt-postgres==1.9.0
+
+      - name: Generate profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<EOF
+          dbt_semantic_prep:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                user: dbt
+                password: dbtpass
+                port: 5432
+                dbname: dbt_ci
+                schema: dbt_semantic_ci
+                threads: 4
+          EOF
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt debug
+        run: dbt debug
+
+      - name: dbt seed
+        run: dbt seed
+
+      # local CI can't generate upstream modified models
+      - name: dbt build
+        run: |
+          dbt build
+
+      - name: Upload artifacts for Slim CI caching
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-state
+          path: target

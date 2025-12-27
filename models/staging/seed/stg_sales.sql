@@ -7,7 +7,7 @@ WITH sales AS (
 final AS (
 
     SELECT
-        "Row ID" AS row_id,
+        "Row ID" AS sale_id,
         "Order ID" AS order_id,
         "Order Date" AS order_date,
         "Ship Date" AS ship_date,
@@ -21,10 +21,10 @@ final AS (
         "Region" AS region,
         "Product ID" AS product_id,
         "Product Name" AS product_name,
-        "Sales" AS sales,
+        "Sales" AS order_amount,
         "Units" AS units,
         "Gross Profit" AS gross_profit,
-        "Cost" AS cost
+        "Cost" AS order_cost
 
     FROM sales
 

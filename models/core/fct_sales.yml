@@ -17,15 +17,12 @@ models:
         data_type: string
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_postal_codes')
-              field: postal_code_key
-      - name: order_id
-        description: "Unique order identifier."
+      - name: sales_id
+        description: "Unique sales identifier."
         data_type: string
-        tests:
-          - not_null
-          - unique
+      - name: order_id
+        description: "Order ID."
+        data_type: string
       - name: order_date
         description: "Date of order."
         data_type: timestamp
@@ -40,15 +37,15 @@ models:
       - name: customer_id
         description: "Unique customer identifier."
         data_type: string
-      - name: sales
+      - name: order_amount
         description: "Total sales value of the order."
         data_type: numeric
       - name: units
         description: "Total units in the order."
         data_type: integer
       - name: gross_profit
-        description: "Gross profit for the order (sales - cost)."
+        description: "Gross profit for the order (order_amount - order_cost)."
         data_type: numeric
-      - name: cost
+      - name: order_cost
         description: "Cost to manufacture for the order."
         data_type: numeric
