@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_products
+    description: "Staging model for raw product data from the Candy_Products seed."
+    columns:
+      - name: product_id
+        description: "Product unique identifier."
+        tests:
+          - not_null
+          - unique
+        data_type: string
+      - name: product_name
+        description: "Product descriptive name."
+        tests:
+          - not_null
+        data_type: string
+      - name: division
+        description: "Product division."
+        tests:
+          - not_null
+        data_type: string
+      - name: factory
+        description: "Factory name."
+        tests:
+          - not_null
+        data_type: string
+      - name: unit_price
+        description: "Selling price of product."
+        data_type: numeric
+        tests:
+          - not_null
+      - name: unit_cost
+        description: "Cost to produce product."
+        data_type: numeric
+        tests:
+          - not_null

@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: stg_targets
+    description: "Staging model for sales targets from the Candy_Targets seed."
+    columns:
+      - name: division
+        description: "Product division."
+        tests:
+          - not_null
+        data_type: string
+      - name: target
+        description: "Sales target (e.g., for 2024)."
+        data_type: numeric
+        tests:
+          - not_null

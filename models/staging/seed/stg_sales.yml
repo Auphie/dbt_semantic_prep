@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_sales
+    description: "Staging model for raw sales data from the Candy_Sales seed."
+    columns:
+      - name: row_id
+        description: "Unique row identifier."
+        tests:
+          - not_null
+          - unique
+        data_type: integer
+      - name: order_id
+        description: "Unique order identifier."
+        tests:
+          - not_null
+          - unique
+        data_type: string
+      - name: order_date
+        description: "Date of order."
+        tests:
+          - not_null
+        data_type: timestamp
+      - name: ship_date
+        description: "Date of shipment."
+        data_type: timestamp
+      - name: ship_mode
+        description: "Shipping method of order."
+        data_type: string
+      - name: customer_id
+        description: "Unique customer identifier."
+        data_type: string
+      - name: country_region
+        description: "Country or region of customer."
+        data_type: string
+      - name: city
+        description: "City of customer."
+        data_type: string
+      - name: state_province
+        description: "State/province of customer."
+        data_type: string
+      - name: postal_code
+        description: "Postal code / zip code of customer."
+        data_type: string
+      - name: division
+        description: "Product division."
+        data_type: string
+      - name: region
+        description: "Region of customer."
+        data_type: string
+      - name: product_id
+        description: "Unique product identifier."
+        data_type: string
+      - name: product_name
+        description: "Product long name."
+        data_type: string
+      - name: sales
+        description: "Total sales value of order."
+        data_type: numeric
+      - name: units
+        description: "Total units of order."
+        data_type: integer
+      - name: gross_profit
+        description: "Gross profit of order (sales - cost)."
+        data_type: numeric
+      - name: cost
+        description: "Cost to manufacture."
+        data_type: numeric
