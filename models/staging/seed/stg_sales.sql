@@ -4,7 +4,7 @@ WITH sales AS (
 
 ),
 
-final AS (
+renamed AS (
 
     SELECT
         "Row ID" AS sale_id,
@@ -27,6 +27,33 @@ final AS (
         "Cost" AS order_cost
 
     FROM sales
+
+),
+
+final AS (
+
+    SELECT
+        sale_id,
+        order_id,
+        order_date,
+        ship_date,
+        ship_date - order_date AS transit_days,
+        ship_mode,
+        customer_id,
+        country_region,
+        city,
+        state_province,
+        postal_code,
+        division,
+        region,
+        product_id,
+        product_name,
+        order_amount,
+        units,
+        gross_profit,
+        order_cost
+
+    FROM renamed
 
 )
 
