@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_sales
+  - name: stg_seed_sales
     description: "Staging model for order sales data from the Candy_Sales seed."
     columns:
       - name: sale_id

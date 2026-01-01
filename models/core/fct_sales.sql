@@ -1,6 +1,6 @@
 WITH sales AS (
 
-    SELECT * FROM {{ ref('stg_sales') }}
+    SELECT * FROM {{ ref('stg_seed_sales') }}
 
 ),
 
@@ -13,12 +13,13 @@ final AS (
         order_id,
         order_date,
         ship_date,
+        transit_days,
         ship_mode,
         customer_id,
+        /* The commented fields can be referred to dim_postal_codes or a dedicated dim_sales */
         -- country_region,
         -- city,
         -- state_province,
-        postal_code,
         -- division,
         -- region,
         order_amount,

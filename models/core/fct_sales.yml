@@ -49,3 +49,6 @@ models:
       - name: order_cost
         description: "Cost to manufacture for the order."
         data_type: numeric
+      - name: transit_days
+        description: "Number of days taken for shipment."
+        data_type: integer

@@ -47,3 +47,11 @@ models:
     marts:
       +materialized: table
       +schema: analytics
+    semantic:
+      +materialized: view
+      +schema: semantic
+
+vars:
+  null_string_value: "'Not applicable'"
+  null_date_value: "'1960-01-01'"
+  null_int_value: -1

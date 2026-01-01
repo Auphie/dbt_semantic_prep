@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_targets
+  - name: stg_seed_targets
     description: "Staging model for sales targets from the Candy_Targets seed."
     columns:
       - name: division

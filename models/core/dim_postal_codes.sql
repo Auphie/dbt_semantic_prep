@@ -1,6 +1,6 @@
 WITH products AS (
 
-    SELECT * FROM {{ ref('stg_postal_codes') }}
+    SELECT * FROM {{ ref('stg_seed_postal_codes') }}
 
 ),
 

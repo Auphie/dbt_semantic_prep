@@ -1,0 +1,139 @@
+name: Sales
+tables:
+  - name: fct_sales
+    description: Daily total revenue, aligned with daily "Cost of Goods Sold" (COGS), and forecasted revenue.
+    base_table:
+      database: postgres
+      schema: analytics
+      table: fct_sales
+    time_dimensions:
+      - name: order_date
+        expr: order_date
+        description: date when the order was placed
+        unique: false
+        data_type: date
+      - name: ship_date
+        expr: ship_date
+        description: date when the order was shipped
+        unique: false
+        data_type: date
+    measures:
+      - name: order_amount
+        expr: "SUM(sales_amount)"
+        default_aggregation: sum
+        description: "Total sales amount for the selected grain."
+        format: currency
+      - name: gross_profit
+        expr: "SUM(gross_profit)"
+        default_aggregation: sum
+        description: "Gross profit (sales - cost)."
+      - name: units_sold
+        expr: "SUM(units)"
+        default_aggregation: sum
+        description: "Total units sold."
+      - name: order_count
+        expr: "COUNT(DISTINCT order_id)"
+        default_aggregation: count distinct
+        description: "Count of distinct orders."
+      - name: total_transit_days
+        expr: "SUM(ship_date - order_date)"
+        default_aggregation: sum
+        description: "days between order and ship date."
+
+  - name: dim_postal_codes
+    description: Dimension table containing postal code details.
+    base_table:
+      database: postgres
+      schema: base
+      table: dim_postal_codes
+    dimensions:
+      - name: postal_code
+        expr: postal_code
+        description: "Postal code associated with the order."
+        data_type: text
+        synonyms:
+          - zip code
+          - zip
+      - name: state_name
+        expr: state_name
+        description: "State name for the postal code."
+        data_type: text
+      - name: city
+        expr: city
+        description: "City name for the postal code."
+        data_type: text
+    filters:
+    - name: western_region
+      synonyms:
+        - pacific region
+        - west coast
+      description: >
+        Filter to restrict data to orders from the west coast of the USA.
+      comments: Used for analysis focusing on Western American customers.
+      expr: state_name IN ('California', 'Oregon', 'Washington', 'Nevada', 'Idaho', 'Utah', 'Arizona', 'Alaska', 'Hawaii')
+
+  - name: dim_products
+    description: Dimension table containing product details.
+    base_table:
+      database: postgres
+      schema: base
+      table: dim_products
+    dimensions:
+      - name: product_name
+        expr: product_name
+        description: "Product identifier and display name."
+        data_type: text
+        synonyms:
+          - product name
+          - item
+      - name: factory
+        expr: factory
+        description: "Factory name that produced the product."
+        data_type: text
+        synonyms:
+          - factory name
+          - manufacturing plant
+
+  - name: dim_dates
+    description: Date dimension table.
+    base_table:
+      database: postgres
+      schema: core
+      table: dim_dates
+    time_dimensions:
+      - name: date_key
+        expr: date_key
+        description: "Date key for joining with fact tables."
+        unique: true
+        data_type: date
+    dimensions:
+      - name: day_name
+        expr: day_name
+        description: "Name of the day."
+        data_type: text
+      - name: week_of_year
+        expr: week_of_year
+        description: "Week number of the year."
+        data_type: integer
+      - name: yoy date -- last year
+        expr: last_yoy_date
+        description: "Date key for the same date last year."
+        data_type: date
+
+relationships:
+  - name: sales_to_postal_codes
+    left_table: fct_sales
+    right_table: dim_postal_codes
+    relationship_columns:
+      - left_column: postal_code_key
+        right_column: postal_code_key
+    join_type: left_outer
+    relationship_type: many_to_one
+  - name: sales_to_products
+    left_table: fct_sales
+    right_table: dim_products
+    relationship_columns:
+      - left_column: product_key
+        right_column: product_key
+    join_type: left_outer
+    relationship_type: many_to_one
