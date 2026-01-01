@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_factories
+  - name: stg_seed_factories
     description: "Staging model for factory location data from the Candy_Factories seed."
     columns:
       - name: factory

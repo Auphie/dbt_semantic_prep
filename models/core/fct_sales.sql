@@ -1,6 +1,6 @@
 WITH sales AS (
 
-    SELECT * FROM {{ ref('stg_sales') }}
+    SELECT * FROM {{ ref('stg_seed_sales') }}
 
 ),
 

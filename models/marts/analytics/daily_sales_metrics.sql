@@ -18,20 +18,20 @@ products AS (
 
 daily_factory_sales AS (
 
-    SELECT DISTINCT
-        sales.order_date::date AS sales_order_date,
-        products.factory,
-        ROUND(AVG(transit_days), 0) AS daily_avg_transit_days,
-        SUM(sales.order_amount) AS daily_sales_amount,
-        SUM(sales.gross_profit) AS daily_gross_profit,
-        COUNT(DISTINCT sales.order_id) AS daily_orders,
-        COUNT(DISTINCT sales.customer_id) AS daily_unique_customers
+    SELECT
+        s.order_date::date AS sales_order_date,
+        p.factory,
+        ROUND(AVG(s.transit_days), 0) AS daily_avg_transit_days,
+        SUM(s.order_amount) AS daily_sales_amount,
+        SUM(s.gross_profit) AS daily_gross_profit,
+        COUNT(DISTINCT s.order_id) AS daily_orders,
+        COUNT(DISTINCT s.customer_id) AS daily_unique_customers
 
-    FROM sales
-    JOIN products
-        ON sales.product_key = products.product_key
+    FROM sales AS s
+    INNER JOIN products AS p
+        ON s.product_key = p.product_key
 
-    GROUP BY sales.order_date::date, products.factory
+    GROUP BY s.order_date::date, p.factory
 ),
 
 calculate_daily_metrics AS (
@@ -49,21 +49,16 @@ calculate_daily_metrics AS (
         COALESCE(last_year.daily_gross_profit, 0) AS last_year_daily_gross_profit,
         COALESCE(last_year.daily_orders, 0) AS last_year_daily_orders,
         COALESCE(last_year.daily_unique_customers, 0) AS last_year_daily_unique_customers,
-        ROUND(COALESCE(
-            NULLIF(this_year.daily_avg_transit_days, 0)::numeric / NULLIF(last_year.daily_avg_transit_days, 0) * 100
-            , 0, 0)) AS transit_days_index,
-        ROUND(COALESCE(
-            NULLIF(this_year.daily_sales_amount, 0)::numeric / NULLIF(last_year.daily_sales_amount, 0) * 100
-            , 0, 0)) AS sales_amount_index,
-        ROUND(COALESCE(
-            NULLIF(this_year.daily_gross_profit, 0)::numeric / NULLIF(last_year.daily_gross_profit, 0) * 100
-            , 0, 0)) AS gross_profit_index,
-        ROUND(COALESCE(
-            NULLIF(this_year.daily_orders, 0)::numeric / NULLIF(last_year.daily_orders, 0) * 100
-            , 0, 0)) AS orders_index,
-        ROUND(COALESCE(
-            NULLIF(this_year.daily_unique_customers, 0)::numeric / NULLIF(last_year.daily_unique_customers, 0) * 100
-            , 0, 2)) AS unique_customers_index
+        ROUND(COALESCE(NULLIF(this_year.daily_avg_transit_days, 0)::numeric / NULLIF(last_year.daily_avg_transit_days, 0) * 100, 0, 0))
+            AS transit_days_index,
+        ROUND(COALESCE(NULLIF(this_year.daily_sales_amount, 0)::numeric / NULLIF(last_year.daily_sales_amount, 0) * 100, 0, 0))
+            AS sales_amount_index,
+        ROUND(COALESCE(NULLIF(this_year.daily_gross_profit, 0)::numeric / NULLIF(last_year.daily_gross_profit, 0) * 100, 0, 0))
+            AS gross_profit_index,
+        ROUND(COALESCE(NULLIF(this_year.daily_orders, 0)::numeric / NULLIF(last_year.daily_orders, 0) * 100, 0, 0))
+            AS orders_index,
+        ROUND(COALESCE(NULLIF(this_year.daily_unique_customers, 0)::numeric / NULLIF(last_year.daily_unique_customers, 0) * 100, 0, 2))
+            AS unique_customers_index
 
     FROM metric_date
     LEFT JOIN daily_factory_sales AS this_year
@@ -71,7 +66,6 @@ calculate_daily_metrics AS (
     LEFT JOIN daily_factory_sales AS last_year
         ON metric_date.date_key = last_year.sales_order_date - interval '1 year'
         AND this_year.factory = last_year.factory
-
 
     WHERE this_year.sales_order_date BETWEEN '2023-01-01' AND '2023-12-31'
 
@@ -97,4 +91,4 @@ final AS (
 
 )
 
-SELECT * FROM calculate_daily_metrics
+SELECT * FROM final

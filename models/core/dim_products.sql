@@ -1,12 +1,12 @@
 WITH products AS (
 
-    SELECT * FROM {{ ref('stg_products') }}
+    SELECT * FROM {{ ref('stg_seed_products') }}
 
 ),
 
 factories AS (
 
-    SELECT * FROM {{ ref('stg_factories') }}
+    SELECT * FROM {{ ref('stg_seed_factories') }}
 
 ),
 

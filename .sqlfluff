@@ -1,7 +1,7 @@
 [sqlfluff]
 dialect = postgres
 template = dbt
-max_line_length = 100
+max_line_length = 150
 sql_file_exts = .sql,.sql.j2,.dml,.ddl
 exclude_rules = L034
 
@@ -9,6 +9,7 @@ exclude_rules = L034
 indented_joins = false
 indented_using_on = true
 template_blocks_indent = false
+indented_on_contents = false
 
 [sqlfluff:templater:dbt]
 project_dir = .

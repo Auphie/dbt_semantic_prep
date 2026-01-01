@@ -24,6 +24,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install dbt-core sqlfluff sqlfluff-templater-dbt
 
+      - name: Check SQLFluff version
+        run: sqlfluff --version
+
       - name: Lint SQL with SQLFluff
         run: sqlfluff lint models/  --dialect postgres --ignore templating
 

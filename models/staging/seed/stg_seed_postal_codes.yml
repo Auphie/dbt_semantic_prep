@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_postal_codes
+  - name: stg_seed_postal_codes
     description: "Staging model for US zip code geography from the uszips seed."
     columns:
       - name: postal_code

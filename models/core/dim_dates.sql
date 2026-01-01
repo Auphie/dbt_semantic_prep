@@ -1,17 +1,15 @@
 WITH date_spine AS (
-    {{ dbt_utils.date_spine(
-        datepart="day",
+    {{ date_spine(datepart="day",
         start_date="to_date('01/01/2018', 'MM/DD/YYYY')",
         end_date="current_date + interval '2 year'"
-     )
-    }}
+     ) }}
 ),
 
 base AS (
 
     SELECT
         date_day::date AS date_key,
-        date_day AS date,
+        date_day,
         to_char(date_day, 'Dy') AS day_name,
         to_char(date_day, 'FMDay') AS full_day_name,
         DATE_PART('month', date_day) AS date_month,

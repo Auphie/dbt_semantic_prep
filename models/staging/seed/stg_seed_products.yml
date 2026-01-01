@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_products
+  - name: stg_seed_products
     description: "Staging model for raw product data from the Candy_Products seed."
     columns:
       - name: product_id

@@ -47,6 +47,9 @@ models:
     marts:
       +materialized: table
       +schema: analytics
+    semantic:
+      +materialized: view
+      +schema: semantic
 
 vars:
   null_string_value: "'Not applicable'"

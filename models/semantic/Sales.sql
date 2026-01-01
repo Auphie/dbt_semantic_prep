@@ -1,7 +1,3 @@
-{{ config(
-    materialized='view',
-    schema='semantic'
-) }}
 WITH big_table AS (
 
     SELECT
