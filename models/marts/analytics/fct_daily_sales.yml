@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: fct_daily_sales
+    description: "Daily aggregated factory-level metrics used for monitoring and dashboards."
+    columns:
+      - name: daily_sales_id
+        description: "{{ doc('primary_key') }}"
+        data_type: text
+        tests:
+          - unique
+          - not_null
+      - name: date_key
+        description: "Date key joining to `dim_dates`."
+        data_type: date
+        tests:
+          - not_null
+      - name: factory
+        description: "Factory name for the metric row."
+        data_type: string
+        tests:
+          - not_null
+      - name: daily_avg_transit_days
+        description: "Average transit days for orders on the date." 
+        data_type: numeric
+      - name: daily_sales_amount
+        description: "Total sales amount for the date and factory." 
+        data_type: numeric
+        tests:
+          - not_null
+      - name: daily_gross_profit
+        description: "Total gross profit for the date and factory." 
+        data_type: numeric
+      - name: daily_orders
+        description: "Count of distinct orders for the date and factory." 
+        data_type: integer
+        tests:
+          - not_null
+      - name: daily_unique_customers
+        description: "Count of unique customers for the date and factory." 
+        data_type: integer
+      - name: transit_days_index
+        description: "Index vs prior-year for transit days (percentage)."
+        data_type: numeric
+      - name: sales_amount_index
+        description: "Index vs prior-year for sales amount (percentage)."
+        data_type: numeric
+      - name: gross_profit_index
+        description: "Index vs prior-year for gross profit (percentage)."
+        data_type: numeric
+      - name: orders_index
+        description: "Index vs prior-year for orders (percentage)."
+        data_type: numeric
+      - name: unique_customers_index
+        description: "Index vs prior-year for unique customers (percentage)."
+        data_type: numeric

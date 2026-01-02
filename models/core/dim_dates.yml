@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: dim_dates
+    description: "Calendar/date dimension used across the project."
+    columns:
+      - name: date_key
+        description: "Date value (primary key) for joining to fact tables."
+        data_type: date
+        tests:
+          - not_null
+          - unique
+      - name: day_name
+        description: "Abbreviated day name (e.g. Mon, Tue)."
+        data_type: varchar
+      - name: full_day_name
+        description: "Full day name (e.g. Monday, Tuesday)."
+        data_type: varchar
+      - name: date_month
+        description: "Numeric calendar month (1-12)."
+        data_type: integer
+      - name: date_year
+        description: "Numeric calendar year (e.g. 2024)."
+        data_type: integer
+      - name: year_iso
+        description: "ISO year for ISO week calculations."
+        data_type: integer
+      - name: day_of_week
+        description: "ISO day of week (1-7, Monday=1)."
+        data_type: integer
+      - name: day_of_month
+        description: "Day of month (1-31)."
+        data_type: integer
+      - name: day_of_year
+        description: "Day of year (1-366)."
+        data_type: integer
+      - name: week_of_year
+        description: "ISO week number of the year."
+        data_type: integer
+      - name: first_day_of_week
+        description: "Date for the first day of the week for the given date."
+        data_type: date
+      - name: first_day_of_month
+        description: "First date of the month for the given date."
+        data_type: date
+      - name: last_day_of_month
+        description: "Last date of the month for the given date."
+        data_type: date
+      - name: first_day_of_year
+        description: "First date of the calendar year for the given date."
+        data_type: date
+      - name: last_day_of_year
+        description: "Last date of the calendar year for the given date."
+        data_type: date
+      - name: last_day_of_week
+        description: "Last date of the week for the given date (week ending)."
+        data_type: date
+      - name: last_yoy_date
+        description: "Date key for same ISO week/day in the prior year (year-over-year anchor)."
+        data_type: date
+      - name: next_yoy_date
+        description: "Date key for same ISO week/day in the next year (year-over-year anchor)."
+        data_type: date

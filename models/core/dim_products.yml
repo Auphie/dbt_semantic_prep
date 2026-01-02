@@ -11,7 +11,7 @@ models:
           - not_null
           - unique
       - name: product_id
-        description: "Product unique identifier."
+        description: "{{ doc('primary_key') }}"
         data_type: string
         tests:
           - not_null

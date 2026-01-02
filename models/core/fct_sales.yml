@@ -5,7 +5,7 @@ models:
     description: "Fact table of sales transactions (denormalized)."
     columns:
       - name: product_key
-        description: "Surrogate key referencing dim_products."
+        description: "{{ doc('product_key') }}"
         data_type: string
         tests:
           - not_null
@@ -17,8 +17,11 @@ models:
         data_type: string
         tests:
           - not_null
-      - name: sales_id
-        description: "Unique sales identifier."
+      - name: sale_id
+        description: "{{ doc('primary_key') }}"
+        tests:
+          - unique
+          - not_null
         data_type: string
       - name: order_id
         description: "Order ID."
