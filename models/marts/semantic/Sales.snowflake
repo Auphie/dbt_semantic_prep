@@ -1,7 +1,11 @@
+# Name and description of the semantic model.
 name: Sales
+description: Daily sales metrics for reporting dashboard
+
+# A semantic model can contain one or more logical tables.
 tables:
   - name: fct_sales
-    description: Daily total revenue, aligned with daily "Cost of Goods Sold" (COGS), and forecasted revenue.
+    description: '{{ doc("column_created_at") }}'
     base_table:
       database: postgres
       schema: analytics
@@ -9,7 +13,7 @@ tables:
     time_dimensions:
       - name: order_date
         expr: order_date
-        description: date when the order was placed
+        description: '{% docs "order_date" %}'
         unique: false
         data_type: date
       - name: ship_date
@@ -135,13 +139,5 @@ relationships:
     relationship_columns:
       - left_column: product_key
         right_column: product_key
-    join_type: left_outer
-    relationship_type: many_to_one
-  - name: sales_to_dates
-    left_table: fct_sales
-    right_table: dim_dates
-    relationship_columns:
-      - left_column: order_date
-        right_column: date_key
     join_type: left_outer
     relationship_type: many_to_one
