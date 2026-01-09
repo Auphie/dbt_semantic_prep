@@ -1,0 +1,41 @@
+{{ config(materialized='semantic_view') }}
+tables (
+    dim_dates PRIMARY KEY (date_key),
+    dim_products PRIMARY KEY (product_key),
+    dim_postal_codes PRIMARY KEY (postal_code_key),
+    fct_sales PRIMARY KEY (sales_id),
+        PRIMARY KEY (order_date, product_key, postal_code_key, product_key)
+)
+relationships (
+    fct_sales(date_key) REFERENCES dim_dates(date_key),
+    fct_sales(postal_code_key) REFERENCES dim_postal_codes(postal_code_key),
+    fct_sales(product_key) REFERENCES dim_products(product_key)
+)
+facts (
+    dim_products.unit_price AS unit_price,
+    dim_products.unit_cost AS unit_cost,
+    fct_sales.sales_quantity AS sales_quantity,
+    fct_sales.sales_price AS sales_price
+)
+dimensions (
+    dim_postal_codes.postal_code,
+    dim_postal_codes.city,
+    dim_postal_codes.state,
+    dim_dates.date_year
+        WITH SYNONYMS = ( 'year', 'calendar year'),
+    dim_dates.date_month
+        WITH SYNONYMS = ( 'calendar month', 'month'),
+    dim_products.product_name,
+    dim_products.category,
+    dim_products.subcategory
+)
+FILTERS (
+    western_region AS (dim_postal_codes.state_name IN ('California', 'Oregon', 'Washington', 'Nevada', 'Idaho', 'Utah', 'Arizona', 'Alaska', 'Hawaii'))
+)
+metrics (
+    total_sales_amount AS SUM(fct_sales.sales_amount),
+    total_gross_profit AS SUM(fct_sales.gross_profit),
+    total_units_sold AS SUM(fct_sales.units_sold),
+    order_count AS COUNT DISTINCT(fct_sales.order_number)
+        WITH SYNONYMS = ( 'orders', 'total transactions')
+);
