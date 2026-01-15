@@ -1,160 +1,6 @@
 version: 2
 
 # ========================================
-# Data Warehouse Models Documentation
-# These models are the foundation for the semantic layer
-# ========================================
-
-models:
-  - name: fct_sales
-    description: |
-      Sales fact table at the transaction grain.
-      One row per sale with order details, quantities, and financial metrics.
-      Primary key: sale_id
-    columns:
-      - name: sale_id
-        description: "Unique identifier for each sale transaction."
-        tests:
-          - not_null
-          - unique
-      - name: order_id
-        description: "Foreign key to orders; groups multiple sales."
-      - name: order_date
-        description: "Date when the order was placed."
-      - name: ship_date
-        description: "Date when the order was shipped."
-      - name: order_amount
-        description: "Total sales revenue for the order."
-      - name: units
-        description: "Total quantity of units ordered."
-      - name: gross_profit
-        description: "Gross profit (order_amount - order_cost)."
-      - name: order_cost
-        description: "Total cost to manufacture the order."
-      - name: product_key
-        description: "Foreign key to dim_products."
-        tests:
-          - relationships:
-              to: ref('dim_products')
-              field: product_key
-      - name: postal_code_key
-        description: "Foreign key to dim_postal_codes."
-        tests:
-          - relationships:
-              to: ref('dim_postal_codes')
-              field: postal_code_key
-      - name: customer_id
-        description: "Unique customer identifier."
-      - name: ship_mode
-        description: "Shipping method (e.g., Standard, Express, Overnight)."
-      - name: transit_days
-        description: "Number of days between order and ship dates."
-
-  - name: dim_products
-    description: |
-      Product dimension table with category, pricing, and manufacturing details.
-      One row per product. Includes factory location coordinates for geographic analysis.
-      Primary key: product_key
-    columns:
-      - name: product_key
-        description: "Surrogate key (primary key) for product."
-        tests:
-          - not_null
-          - unique
-      - name: product_id
-        description: "Natural key for product."
-      - name: product_name
-        description: "Product descriptive name."
-      - name: category
-        description: "Product category classification."
-      - name: subcategory
-        description: "Product subcategory for finer classification."
-      - name: division
-        description: "Product division for business unit grouping."
-      - name: factory
-        description: "Factory name responsible for production."
-      - name: factory_latitude
-        description: "Geographic latitude of manufacturing facility."
-      - name: factory_longitude
-        description: "Geographic longitude of manufacturing facility."
-      - name: unit_price
-        description: "List price per unit of the product."
-      - name: unit_cost
-        description: "Cost to manufacture one unit."
-
-  - name: dim_postal_codes
-    description: |
-      Geographic dimension for US postal codes and related attributes.
-      One row per postal code. Includes demographics and geographic metadata.
-      Primary key: postal_code_key
-    columns:
-      - name: postal_code_key
-        description: "Surrogate key (primary key) for postal code."
-        tests:
-          - not_null
-          - unique
-      - name: postal_code
-        description: "5-digit US postal code (USPS)."
-        tests:
-          - not_null
-          - unique
-      - name: city
-        description: "Official USPS city name."
-      - name: state_id
-        description: "State abbreviation (e.g., CA, NY)."
-      - name: state_name
-        description: "Full state name."
-      - name: county_name
-        description: "Primary county name."
-      - name: county_fips
-        description: "Federal Information Processing Standards code for county."
-      - name: lat
-        description: "Latitude coordinate of postal code."
-      - name: lng
-        description: "Longitude coordinate of postal code."
-      - name: population
-        description: "Estimated population for the postal code area."
-      - name: density
-        description: "Population density (persons per square km)."
-      - name: timezone
-        description: "IANA timezone identifier (e.g., America/Los_Angeles)."
-
-  - name: dim_dates
-    description: |
-      Calendar dimension for time-based analysis.
-      One row per date. Includes fiscal periods, days of week, and ISO week data.
-      Primary key: date_key
-    columns:
-      - name: date_key
-        description: "Date value (primary key) for joining to fact tables."
-        tests:
-          - not_null
-          - unique
-      - name: date_year
-        description: "Numeric calendar year."
-      - name: date_month
-        description: "Numeric calendar month (1-12)."
-      - name: day_of_month
-        description: "Day of month (1-31)."
-      - name: day_of_week
-        description: "ISO day of week (1-7, Monday=1)."
-      - name: day_name
-        description: "Abbreviated day name."
-      - name: full_day_name
-        description: "Full day name."
-      - name: week_of_year
-        description: "ISO week number of the year."
-      - name: day_of_year
-        description: "Day of year (1-366)."
-      - name: first_day_of_week
-        description: "Date for the first day of the week."
-      - name: first_day_of_month
-        description: "First date of the month."
-      - name: last_day_of_month
-        description: "Last date of the month."
-
-
-# ========================================
 # Semantic Models
 # These wrap the data warehouse models with business semantics
 # ========================================
@@ -218,11 +64,6 @@ semantic_models:
       - name: ship_mode
         type: categorical
         description: "Shipping method (Standard, Express, Overnight, etc.)."
-      
-      # Quantitative dimensions (used for grouping, not aggregation)
-      - name: transit_days
-        type: categorical
-        description: "Number of days from order to ship (useful for trend analysis)."
 
     measures:
       # Revenue measures
@@ -263,6 +104,12 @@ semantic_models:
         description: "Distinct count of customers with sales."
         agg: count_distinct
         expr: customer_id
+      
+      # Transit time measure
+      - name: transit_days
+        description: "Average days from order to shipment."
+        agg: average
+        expr: transit_days
 
 
   # --------
@@ -309,22 +156,14 @@ semantic_models:
         type: categorical
         expr: concat(factory, ' (', round(factory_latitude, 2), ', ', round(factory_longitude, 2), ')')
         description: "Composite dimension: Factory name with geographic coordinates."
-
-    measures:
-      - name: unit_price_avg
-        description: "Average selling price per unit."
-        agg: average
-        expr: unit_price
       
-      - name: unit_cost_avg
-        description: "Average manufacturing cost per unit."
-        agg: average
-        expr: unit_cost
+      - name: unit_price
+        type: categorical
+        description: "Unit selling price."
       
-      - name: unit_price_sum
-        description: "Total price across all product units (for margin analysis)."
-        agg: sum
-        expr: unit_price
+      - name: unit_cost
+        type: categorical
+        description: "Unit manufacturing cost."
 
 
   # --------
@@ -347,10 +186,6 @@ semantic_models:
         expr: postal_code
 
     dimensions:
-      - name: postal_code
-        type: categorical
-        description: "5-digit postal code."
-      
       - name: city
         type: categorical
         description: "City name."
@@ -391,22 +226,14 @@ semantic_models:
             when state_id in ('OH', 'IN', 'IL', 'MI', 'WI', 'MN', 'IA', 'MO') then 'Midwest'
             else 'Other'
           end
-
-    measures:
+      
       - name: population
-        description: "Population estimate (max value as a proxy for total)."
-        agg: max
-        expr: population
+        type: categorical
+        description: "Population estimate for the postal code area."
       
-      - name: population_avg
-        description: "Average population density across postal codes."
-        agg: average
-        expr: population
-      
-      - name: density_avg
-        description: "Average population density per square km."
-        agg: average
-        expr: density
+      - name: density
+        type: categorical
+        description: "Population density per square km."
 
 
   # --------

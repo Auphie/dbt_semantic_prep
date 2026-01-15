@@ -502,21 +502,21 @@ TimeDimension('semantic_model__time_dimension', 'granularity')
 ```
 
 ### Common Aggregations
-| Aggregation | Use Case |
-|---|---|
-| `sum` | Total revenue, total quantity |
-| `count` | Row count |
+|    Aggregation   |             Use Case            |
+|------------------|---------------------------------|
+| `sum`            | Total revenue, total quantity   |
+| `count`          | Row count                       |
 | `count_distinct` | Unique customers, unique orders |
-| `average` | Average price, average units |
-| `min` / `max` | Minimum/maximum values |
+| `average`        | Average price, average units    |
+| `min` / `max`    | Minimum/maximum values          |
 
 ### Metric Types Quick Reference
-| Type | Purpose | Example |
-|---|---|---|
-| `simple` | Direct measure aggregation | `total_sales` |
-| `derived` | Calculation from other metrics | `avg_order_value` |
-| `ratio` | Compare two measures | `profit_margin` |
-| `cumulative` | Running total over time | `ytd_sales` |
+|     Type     |             Purpose            |       Example     |
+|--------------|--------------------------------|-------------------|
+| `simple`     | Direct measure aggregation     | `total_sales`     |
+| `derived`    | Calculation from other metrics | `avg_order_value` |
+| `ratio`      | Compare two measures           | `profit_margin`   |
+| `cumulative` | Running total over time        | `ytd_sales`       |
 
 ---
 

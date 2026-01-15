@@ -57,11 +57,15 @@ Dimension('{semantic_model_name}__{dimension_name}')
 ```
 
 ### Categorical Dimensions
+#### `sales_fact__customer_id`
+- **Source Column**: `customer_id`
+- **Type**: Dimension (categorical)
+- **Description**: Customer identifier for customer-level grouping
 
-| Reference | Source Column | Type | Description |
-|-----------|---------------|------|-------------|
-| `sales_fact__customer_id` | `customer_id` | Dimension (categorical) | Customer identifier for customer-level grouping |
-| `sales_fact__ship_mode` | `ship_mode` | Dimension (categorical) | Shipping method (Standard, Express, Overnight, etc.) |
+#### `sales_fact__ship_mode`
+- **Source Column**: `ship_mode`
+- **Type**: Dimension (categorical)
+- **Description**: Shipping method (Standard, Express, Overnight, etc.)
 
 **Usage Examples**:
 ```yaml
@@ -71,12 +75,6 @@ Dimension('{semantic_model_name}__{dimension_name}')
 # Filter by customer
 where: "{{ Dimension('sales_fact__customer_id') }} = 'CUST123'"
 ```
-
-### Quantitative Dimensions
-
-| Reference | Source Column | Type | Description |
-|-----------|---------------|------|-------------|
-| `sales_fact__transit_days` | `transit_days` | Dimension (quantitative) | Days from order to ship; used for grouping/trend analysis |
 
 **Usage Examples**:
 ```yaml
@@ -93,15 +91,35 @@ where: "{{ Dimension('sales_fact__customer_id') }} = 'CUST123'"
 **Primary Key**: `product_key`
 
 ### Categorical Dimensions
+#### `products_dimension__product_name`
+- **Source Column**: `product_name`
+- **Type**: Dimension
+- **Description**: Product display name
 
-| Reference | Source Column | Type | Description |
-|-----------|---------------|------|-------------|
-| `products_dimension__product_name` | `product_name` | Dimension | Product display name |
-| `products_dimension__category` | `category` | Dimension | High-level product category |
-| `products_dimension__subcategory` | `subcategory` | Dimension | Sub-classification within category |
-| `products_dimension__division` | `division` | Dimension | Business division responsible for product |
-| `products_dimension__factory` | `factory` | Dimension | Manufacturing facility name |
-| `products_dimension__factory_location` | Computed | Dimension | Composite: Factory name with coordinates (e.g., "Factory A (40.71, -74.01)") |
+#### `products_dimension__category`
+- **Source Column**: `category`
+- **Type**: Dimension
+- **Description**: High-level product category
+
+#### `products_dimension__subcategory`
+- **Source Column**: `subcategory`
+- **Type**: Dimension
+- **Description**: Sub-classification within category
+
+#### `products_dimension__division`
+- **Source Column**: `division`
+- **Type**: Dimension
+- **Description**: Business division responsible for product
+
+#### `products_dimension__factory`
+- **Source Column**: `factory`
+- **Type**: Dimension
+- **Description**: Manufacturing facility name
+
+#### `products_dimension__factory_location`
+- **Source Column**: `Computed`
+- **Type**: Dimension
+- **Description**: Composite: Factory name with coordinates (e.g., "Factory A (40.71, -74.01)")
 
 **Usage Examples**:
 ```yaml
@@ -125,18 +143,50 @@ group_by:
 **Primary Key**: `postal_code_key`
 
 ### Categorical Dimensions
+#### `postal_codes_dimension__postal_code`
+- **Source Column**: `postal_code`
+- **Type**: Dimension
+- **Description**: 5-digit postal code
 
-| Reference | Source Column | Type | Description |
-|-----------|---------------|------|-------------|
-| `postal_codes_dimension__postal_code` | `postal_code` | Dimension | 5-digit postal code |
-| `postal_codes_dimension__city` | `city` | Dimension | City name |
-| `postal_codes_dimension__state_id` | `state_id` | Dimension | State abbreviation (CA, NY, TX, etc.) |
-| `postal_codes_dimension__state_name` | `state_name` | Dimension | Full state name (California, New York, Texas, etc.) |
-| `postal_codes_dimension__county_name` | `county_name` | Dimension | County name for sub-state analysis |
-| `postal_codes_dimension__county_fips` | `county_fips` | Dimension | FIPS code for standardized county identification |
-| `postal_codes_dimension__timezone` | `timezone` | Dimension | IANA timezone identifier (e.g., America/Los_Angeles) |
-| `postal_codes_dimension__geography` | Computed | Dimension | Composite: City and state (e.g., "San Francisco, CA") |
-| `postal_codes_dimension__region` | Computed | Dimension | Geographic region derived from state (West, South, Northeast, Midwest, Other) |
+#### `postal_codes_dimension__city`
+- **Source Column**: `city`
+- **Type**: Dimension
+- **Description**: City name
+
+#### `postal_codes_dimension__state_id`
+- **Source Column**: `state_id`
+- **Type**: Dimension
+- **Description**: State abbreviation (CA, NY, TX, etc.)
+
+#### `postal_codes_dimension__state_name`
+- **Source Column**: `state_name`
+- **Type**: Dimension
+- **Description**: Full state name (California, New York, Texas, etc.)
+
+#### `postal_codes_dimension__county_name`
+- **Source Column**: `county_name`
+- **Type**: Dimension
+- **Description**: County name for sub-state analysis
+
+#### `postal_codes_dimension__county_fips`
+- **Source Column**: `county_fips`
+- **Type**: Dimension
+- **Description**: FIPS code for standardized county identification
+
+#### `postal_codes_dimension__timezone`
+- **Source Column**: `timezone`
+- **Type**: Dimension
+- **Description**: IANA timezone identifier (e.g., America/Los_Angeles)
+
+#### `postal_codes_dimension__geography`
+- **Source Column**: `Computed`
+- **Type**: Dimension
+- **Description**: Composite: City and state (e.g., "San Francisco, CA")
+
+#### `postal_codes_dimension__region`
+- **Source Column**: `Computed`
+- **Type**: Dimension
+- **Description**: Geographic region derived from state (West, South, Northeast, Midwest, Other)
 
 **Usage Examples**:
 ```yaml
@@ -168,19 +218,55 @@ where: "{{ Dimension('postal_codes_dimension__state_id') }} IN ('CA', 'OR', 'WA'
 **Primary Key**: `date_key`
 
 ### Categorical Dimensions
+#### `dates_dimension__calendar_date`
+- **Source Column**: `date_key`
+- **Type**: Dimension
+Description: Full date value
 
-| Reference | Source Column | Type | Description |
-|-----------|---------------|------|-------------|
-| `dates_dimension__calendar_date` | `date_key` | Dimension | Full date value |
-| `dates_dimension__calendar_year` | `date_year` | Dimension | Calendar year (YYYY) |
-| `dates_dimension__calendar_month` | `date_month` | Dimension | Calendar month (1-12) |
-| `dates_dimension__month_name` | Computed | Dimension | Month name (January, February, etc.) |
-| `dates_dimension__day_of_month` | `day_of_month` | Dimension | Day of month (1-31) |
-| `dates_dimension__day_name` | `day_name` | Dimension | Abbreviated day name (Mon, Tue, Wed, etc.) |
-| `dates_dimension__full_day_name` | `full_day_name` | Dimension | Full day name (Monday, Tuesday, etc.) |
-| `dates_dimension__week_of_year` | `week_of_year` | Dimension | ISO week number (1-53) |
-| `dates_dimension__day_of_year` | `day_of_year` | Dimension | Day of year (1-366); useful for trend analysis |
-| `dates_dimension__year_month` | Computed | Dimension | Composite: Year-month format (YYYY-MM) |
+#### `dates_dimension__calendar_year`
+- **Source Column**: `date_year`
+- **Type**: Dimension
+- **Description**: Calendar year (YYYY)
+
+#### `dates_dimension__calendar_month`
+- **Source Column**: `date_month`
+- **Type**: Dimension
+- **Description**: Calendar month (1–12)
+
+#### `dates_dimension__month_name`
+- **Source Column**: `Computed`
+- **Type**: Dimension
+- **Description**: Month name (January, February, etc.)
+
+#### `dates_dimension__day_of_month`
+- **Source Column**: `day_of_month`
+- **Type**: Dimension
+- **Description**: Day of month (1–31)
+
+#### `dates_dimension__day_name`
+- **Source Column**: `day_name`
+- **Type**: Dimension
+- **Description**: Abbreviated day name (Mon, Tue, Wed, etc.)
+
+#### `dates_dimension__full_day_name`
+- **Source Column**: `full_day_name`
+- **Description**: Dimension
+Description: Full day name (Monday, Tuesday, etc.)
+
+#### `dates_dimension__week_of_year`
+- **Source Column**: `week_of_year`
+- **Type**: Dimension
+- **Description**: ISO week number (1–53)
+
+#### `dates_dimension__day_of_year`
+- **Source Column**: `day_of_year`
+- **Type**: Dimension
+- **Description**: Day of year (1–366); useful for trend analysis
+
+#### `dates_dimension__year_month`
+- **Source Column**: `Computed`
+- **Type**: Dimension
+- **Description**: Composite: Year-month format (YYYY-MM)
 
 **Usage Examples**:
 ```yaml
@@ -233,18 +319,6 @@ saved_queries:
         # Product dimensions
         - Dimension('products_dimension__category')
 ```
-
----
-
-## Quick Reference Table
-
-| Semantic Model | Count | Primary Use |
-|---|---|---|
-| `sales_fact` | 5 dimensions | Transaction-level analysis (orders, revenue, fulfillment) |
-| `products_dimension` | 6 dimensions | Product performance and categorization |
-| `postal_codes_dimension` | 9 dimensions | Geographic analysis and regional reporting |
-| `dates_dimension` | 10 dimensions | Time-series analysis and calendar grouping |
-| **TOTAL** | **30 dimensions** | Complete business analytics |
 
 ---
 

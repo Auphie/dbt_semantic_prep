@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: time_spine
+    description: "Time spine model required by dbt MetricFlow for time-based calculations and grain filling."
+    time_spine:
+      standard_granularity_column: date_day
+    config:
+      materialized: table
+    columns:
+      - name: date_day
+        description: "Calendar date at day granularity."
+        data_type: date
+        granularity: day
+        tests:
+          - not_null
+          - unique
