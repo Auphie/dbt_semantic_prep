@@ -1,0 +1,772 @@
+version: 2
+
+# ========================================
+# Data Warehouse Models Documentation
+# These models are the foundation for the semantic layer
+# ========================================
+
+models:
+  - name: fct_sales
+    description: |
+      Sales fact table at the transaction grain.
+      One row per sale with order details, quantities, and financial metrics.
+      Primary key: sale_id
+    columns:
+      - name: sale_id
+        description: "Unique identifier for each sale transaction."
+        tests:
+          - not_null
+          - unique
+      - name: order_id
+        description: "Foreign key to orders; groups multiple sales."
+      - name: order_date
+        description: "Date when the order was placed."
+      - name: ship_date
+        description: "Date when the order was shipped."
+      - name: order_amount
+        description: "Total sales revenue for the order."
+      - name: units
+        description: "Total quantity of units ordered."
+      - name: gross_profit
+        description: "Gross profit (order_amount - order_cost)."
+      - name: order_cost
+        description: "Total cost to manufacture the order."
+      - name: product_key
+        description: "Foreign key to dim_products."
+        tests:
+          - relationships:
+              to: ref('dim_products')
+              field: product_key
+      - name: postal_code_key
+        description: "Foreign key to dim_postal_codes."
+        tests:
+          - relationships:
+              to: ref('dim_postal_codes')
+              field: postal_code_key
+      - name: customer_id
+        description: "Unique customer identifier."
+      - name: ship_mode
+        description: "Shipping method (e.g., Standard, Express, Overnight)."
+      - name: transit_days
+        description: "Number of days between order and ship dates."
+
+  - name: dim_products
+    description: |
+      Product dimension table with category, pricing, and manufacturing details.
+      One row per product. Includes factory location coordinates for geographic analysis.
+      Primary key: product_key
+    columns:
+      - name: product_key
+        description: "Surrogate key (primary key) for product."
+        tests:
+          - not_null
+          - unique
+      - name: product_id
+        description: "Natural key for product."
+      - name: product_name
+        description: "Product descriptive name."
+      - name: category
+        description: "Product category classification."
+      - name: subcategory
+        description: "Product subcategory for finer classification."
+      - name: division
+        description: "Product division for business unit grouping."
+      - name: factory
+        description: "Factory name responsible for production."
+      - name: factory_latitude
+        description: "Geographic latitude of manufacturing facility."
+      - name: factory_longitude
+        description: "Geographic longitude of manufacturing facility."
+      - name: unit_price
+        description: "List price per unit of the product."
+      - name: unit_cost
+        description: "Cost to manufacture one unit."
+
+  - name: dim_postal_codes
+    description: |
+      Geographic dimension for US postal codes and related attributes.
+      One row per postal code. Includes demographics and geographic metadata.
+      Primary key: postal_code_key
+    columns:
+      - name: postal_code_key
+        description: "Surrogate key (primary key) for postal code."
+        tests:
+          - not_null
+          - unique
+      - name: postal_code
+        description: "5-digit US postal code (USPS)."
+        tests:
+          - not_null
+          - unique
+      - name: city
+        description: "Official USPS city name."
+      - name: state_id
+        description: "State abbreviation (e.g., CA, NY)."
+      - name: state_name
+        description: "Full state name."
+      - name: county_name
+        description: "Primary county name."
+      - name: county_fips
+        description: "Federal Information Processing Standards code for county."
+      - name: lat
+        description: "Latitude coordinate of postal code."
+      - name: lng
+        description: "Longitude coordinate of postal code."
+      - name: population
+        description: "Estimated population for the postal code area."
+      - name: density
+        description: "Population density (persons per square km)."
+      - name: timezone
+        description: "IANA timezone identifier (e.g., America/Los_Angeles)."
+
+  - name: dim_dates
+    description: |
+      Calendar dimension for time-based analysis.
+      One row per date. Includes fiscal periods, days of week, and ISO week data.
+      Primary key: date_key
+    columns:
+      - name: date_key
+        description: "Date value (primary key) for joining to fact tables."
+        tests:
+          - not_null
+          - unique
+      - name: date_year
+        description: "Numeric calendar year."
+      - name: date_month
+        description: "Numeric calendar month (1-12)."
+      - name: day_of_month
+        description: "Day of month (1-31)."
+      - name: day_of_week
+        description: "ISO day of week (1-7, Monday=1)."
+      - name: day_name
+        description: "Abbreviated day name."
+      - name: full_day_name
+        description: "Full day name."
+      - name: week_of_year
+        description: "ISO week number of the year."
+      - name: day_of_year
+        description: "Day of year (1-366)."
+      - name: first_day_of_week
+        description: "Date for the first day of the week."
+      - name: first_day_of_month
+        description: "First date of the month."
+      - name: last_day_of_month
+        description: "Last date of the month."
+
+
+# ========================================
+# Semantic Models
+# These wrap the data warehouse models with business semantics
+# ========================================
+
+semantic_models:
+  # --------
+  # FACT TABLE: Sales transactions at the order grain
+  # --------
+  - name: sales_fact
+    defaults:
+      agg_time_dimension: order_date
+    description: |
+      Sales fact table at the transaction grain.
+      Primary grain: sale_id (one row per sale)
+      Relationships: Links to products, postal codes, and dates dimensions
+      Use this for revenue, profit, and order quantity analysis.
+    model: ref('fct_sales')
+    
+    entities:
+      - name: sale_id
+        type: primary
+        expr: sale_id
+      
+      - name: order_id
+        type: unique
+        expr: order_id
+      
+      - name: product
+        type: foreign
+        expr: product_key
+      
+      - name: postal_code
+        type: foreign
+        expr: postal_code_key
+      
+      - name: customer
+        type: foreign
+        expr: customer_id
+
+    dimensions:
+      # Time dimensions
+      - name: order_date
+        type: time
+        expr: cast(order_date as DATE)
+        type_params:
+          time_granularity: day
+        description: "Order placement date. Primary time dimension for analysis."
+      
+      - name: ship_date
+        type: time
+        expr: cast(ship_date as DATE)
+        type_params:
+          time_granularity: day
+        description: "Order shipment date. Use for fulfillment analysis."
+      
+      # Categorical dimensions
+      - name: customer_id
+        type: categorical
+        description: "Customer identifier for customer-level grouping."
+      
+      - name: ship_mode
+        type: categorical
+        description: "Shipping method (Standard, Express, Overnight, etc.)."
+      
+      # Quantitative dimensions (used for grouping, not aggregation)
+      - name: transit_days
+        type: categorical
+        description: "Number of days from order to ship (useful for trend analysis)."
+
+    measures:
+      # Revenue measures
+      - name: order_amount_sum
+        description: "Total revenue from all orders."
+        agg: sum
+        expr: order_amount
+      
+      # Unit measures
+      - name: units_sold_sum
+        description: "Total quantity of units sold."
+        agg: sum
+        expr: units
+      
+      # Profit measures
+      - name: gross_profit_sum
+        description: "Total gross profit (revenue - cost)."
+        agg: sum
+        expr: gross_profit
+      
+      - name: order_cost_sum
+        description: "Total cost to fulfill all orders."
+        agg: sum
+        expr: order_cost
+      
+      # Count measures
+      - name: order_count
+        description: "Distinct count of orders (use for order volume analysis)."
+        agg: count_distinct
+        expr: order_id
+      
+      - name: sale_count
+        description: "Total count of sales transactions."
+        agg: count
+        expr: sale_id
+      
+      - name: customer_count
+        description: "Distinct count of customers with sales."
+        agg: count_distinct
+        expr: customer_id
+
+
+  # --------
+  # DIMENSION: Products with pricing and manufacturing details
+  # --------
+  - name: products_dimension
+    description: |
+      Product dimension with category, pricing, and manufacturing details.
+      Primary grain: product_key (one row per product)
+      Use for analyzing sales, margins, and product performance by category.
+    model: ref('dim_products')
+    
+    entities:
+      - name: product_key
+        type: primary
+        expr: product_key
+      
+      - name: product_id
+        type: unique
+        expr: product_id
+
+    dimensions:
+      - name: product_name
+        type: categorical
+        description: "Product display name."
+      
+      - name: category
+        type: categorical
+        description: "High-level product category."
+      
+      - name: subcategory
+        type: categorical
+        description: "Sub-classification within category for detailed grouping."
+      
+      - name: division
+        type: categorical
+        description: "Business division responsible for product."
+      
+      - name: factory
+        type: categorical
+        description: "Manufacturing facility name."
+      
+      - name: factory_location
+        type: categorical
+        expr: concat(factory, ' (', round(factory_latitude, 2), ', ', round(factory_longitude, 2), ')')
+        description: "Composite dimension: Factory name with geographic coordinates."
+
+    measures:
+      - name: unit_price_avg
+        description: "Average selling price per unit."
+        agg: average
+        expr: unit_price
+      
+      - name: unit_cost_avg
+        description: "Average manufacturing cost per unit."
+        agg: average
+        expr: unit_cost
+      
+      - name: unit_price_sum
+        description: "Total price across all product units (for margin analysis)."
+        agg: sum
+        expr: unit_price
+
+
+  # --------
+  # DIMENSION: Geographic attributes by postal code
+  # --------
+  - name: postal_codes_dimension
+    description: |
+      Geographic dimension containing postal code, city, state, and demographic data.
+      Primary grain: postal_code_key (one row per zip code)
+      Use for geographic analysis, regional sales trends, and location-based segmentation.
+    model: ref('dim_postal_codes')
+    
+    entities:
+      - name: postal_code_key
+        type: primary
+        expr: postal_code_key
+      
+      - name: postal_code
+        type: unique
+        expr: postal_code
+
+    dimensions:
+      - name: postal_code
+        type: categorical
+        description: "5-digit postal code."
+      
+      - name: city
+        type: categorical
+        description: "City name."
+      
+      - name: state_id
+        type: categorical
+        description: "State abbreviation (CA, NY, TX, etc.)."
+      
+      - name: state_name
+        type: categorical
+        description: "Full state name."
+      
+      - name: county_name
+        type: categorical
+        description: "County name for sub-state analysis."
+      
+      - name: county_fips
+        type: categorical
+        description: "FIPS code for standardized county identification."
+      
+      - name: timezone
+        type: categorical
+        description: "IANA timezone identifier."
+      
+      - name: geography
+        type: categorical
+        expr: concat(city, ', ', state_id)
+        description: "Composite dimension: City and state."
+      
+      - name: region
+        type: categorical
+        description: "Geographic region derived from state."
+        expr: |
+          case
+            when state_id in ('CA', 'OR', 'WA', 'NV', 'ID', 'UT', 'AZ', 'AK', 'HI') then 'West'
+            when state_id in ('TX', 'OK', 'AR', 'LA') then 'South'
+            when state_id in ('NY', 'PA', 'NJ', 'CT', 'MA', 'VT', 'NH', 'RI', 'ME') then 'Northeast'
+            when state_id in ('OH', 'IN', 'IL', 'MI', 'WI', 'MN', 'IA', 'MO') then 'Midwest'
+            else 'Other'
+          end
+
+    measures:
+      - name: population
+        description: "Population estimate (max value as a proxy for total)."
+        agg: max
+        expr: population
+      
+      - name: population_avg
+        description: "Average population density across postal codes."
+        agg: average
+        expr: population
+      
+      - name: density_avg
+        description: "Average population density per square km."
+        agg: average
+        expr: density
+
+
+  # --------
+  # DIMENSION: Calendar dates for time-based analysis
+  # --------
+  - name: dates_dimension
+    description: |
+      Calendar dimension with fiscal periods, day names, and ISO week data.
+      Primary grain: date_key (one row per day)
+      Use for time-series analysis, period-over-period comparisons, and seasonal patterns.
+    model: ref('dim_dates')
+    
+    entities:
+      - name: date_key
+        type: primary
+        expr: date_key
+
+    dimensions:
+      - name: calendar_date
+        type: categorical
+        expr: date_key
+        description: "Full date value."
+      
+      - name: calendar_year
+        type: categorical
+        expr: date_year
+        description: "Calendar year (YYYY)."
+      
+      - name: calendar_month
+        type: categorical
+        expr: date_month
+        description: "Calendar month (1-12)."
+      
+      - name: month_name
+        type: categorical
+        description: "Month name for display."
+        expr: case when date_month = 1 then 'January' when date_month = 2 then 'February' when date_month = 3 then 'March' when date_month = 4 then 'April' when date_month = 5 then 'May' when date_month = 6 then 'June' when date_month = 7 then 'July' when date_month = 8 then 'August' when date_month = 9 then 'September' when date_month = 10 then 'October' when date_month = 11 then 'November' when date_month = 12 then 'December' end
+      
+      - name: day_of_month
+        type: categorical
+        description: "Day of month (1-31)."
+      
+      - name: day_name
+        type: categorical
+        description: "Abbreviated day name (Mon, Tue, etc.)."
+      
+      - name: full_day_name
+        type: categorical
+        description: "Full day name (Monday, Tuesday, etc.)."
+      
+      - name: week_of_year
+        type: categorical
+        description: "ISO week number (1-53)."
+      
+      - name: day_of_year
+        type: categorical
+        description: "Day of year (1-366) for trend analysis."
+      
+      - name: year_month
+        type: categorical
+        expr: concat(date_year, '-', lpad(date_month, 2, '0'))
+        description: "Year-month composite for grouping (YYYY-MM)."
+
+
+# ========================================
+# METRICS
+# Business KPIs defined from measures and dimensions
+# ========================================
+
+metrics:
+  # --------
+  # REVENUE METRICS
+  # --------
+  - name: total_sales
+    description: "Total revenue from all orders."
+    type: simple
+    label: Total Sales
+    type_params:
+      measure: order_amount_sum
+  
+  - name: avg_order_value
+    description: "Average revenue per order."
+    type: derived
+    label: Average Order Value
+    type_params:
+      expr: total_sales / order_count
+      metrics:
+        - total_sales
+        - order_count
+  
+  # --------
+  # PROFIT METRICS
+  # --------
+  - name: total_profit
+    description: "Total gross profit across all orders."
+    type: simple
+    label: Total Profit
+    type_params:
+      measure: gross_profit_sum
+  
+  - name: profit_margin
+    description: "Gross profit as a percentage of total sales."
+    type: derived
+    label: Profit Margin %
+    type_params:
+      expr: (total_profit / total_sales) * 100
+      metrics:
+        - total_profit
+        - total_sales
+  
+  # --------
+  # VOLUME METRICS
+  # --------
+  - name: total_units_sold
+    description: "Total quantity of units sold across all orders."
+    type: simple
+    label: Total Units Sold
+    type_params:
+      measure: units_sold_sum
+  
+  - name: avg_units_per_order
+    description: "Average units per order."
+    type: derived
+    label: Avg Units per Order
+    type_params:
+      expr: total_units_sold / order_count
+      metrics:
+        - total_units_sold
+        - order_count
+  
+  # --------
+  # COUNT METRICS
+  # --------
+  - name: order_count
+    description: "Count of distinct orders."
+    type: simple
+    label: Total Orders
+    type_params:
+      measure: order_count
+  
+  - name: unique_customers
+    description: "Distinct count of customers with sales."
+    type: simple
+    label: Unique Customers
+    type_params:
+      measure: customer_count
+  
+  - name: sales_transaction_count
+    description: "Total count of sales transactions."
+    type: simple
+    label: Sales Transactions
+    type_params:
+      measure: sale_count
+  
+  # --------
+  # COST METRICS
+  # --------
+  - name: total_cost
+    description: "Total cost to fulfill all orders."
+    type: simple
+    label: Total Cost
+    type_params:
+      measure: order_cost_sum
+  
+  # --------
+  # EFFICIENCY METRICS
+  # --------
+  - name: avg_transit_time
+    description: "Average days from order to shipment."
+    type: simple
+    label: Avg Transit Days
+    type_params:
+      measure: transit_days
+
+
+# ========================================
+# SAVED QUERIES
+# Pre-built query templates for common analyses
+# These combine specific metrics and group-by dimensions for easy reuse
+# ========================================
+
+saved_queries:
+  # --------
+  # EXECUTIVE SUMMARIES
+  # --------
+  - name: daily_sales_summary
+    label: Daily Sales Summary
+    description: |
+      Daily sales summary with key revenue, profit, and volume metrics
+      broken down by date, product category, and geography.
+      Use for executive dashboards and daily performance tracking.
+    query_params:
+      metrics:
+        - total_sales
+        - total_profit
+        - profit_margin
+        - total_units_sold
+        - order_count
+      group_by:
+        - TimeDimension('sales_fact__order_date', 'day')
+        - Dimension('products_dimension__category')
+        - Dimension('postal_codes_dimension__state_name')
+
+  # --------
+  # PRODUCT ANALYSIS
+  # --------
+  - name: sales_by_product_category
+    label: Sales by Product Category
+    description: |
+      Sales metrics by product category and subcategory.
+      Shows revenue, profit, and average order value for each product group.
+      Use for product performance analysis and category comparisons.
+    query_params:
+      metrics:
+        - total_sales
+        - total_profit
+        - profit_margin
+        - avg_order_value
+        - total_units_sold
+      group_by:
+        - Dimension('products_dimension__category')
+        - Dimension('products_dimension__subcategory')
+        - Dimension('products_dimension__division')
+
+  - name: factory_performance
+    label: Factory Performance
+    description: |
+      Manufacturing performance by factory location.
+      Includes product count, average pricing, and cost metrics.
+      Use for supply chain and manufacturing analysis.
+    query_params:
+      metrics:
+        - total_sales
+        - total_cost
+        - profit_margin
+        - avg_units_per_order
+      group_by:
+        - Dimension('products_dimension__factory')
+        - Dimension('products_dimension__factory_location')
+
+  # --------
+  # GEOGRAPHIC ANALYSIS
+  # --------
+  - name: geographic_sales_analysis
+    label: Geographic Sales Analysis
+    description: |
+      Sales metrics by geographic location (state, city, region).
+      Includes customer count, order volume, and revenue by location.
+      Use for regional performance, market penetration, and expansion analysis.
+    query_params:
+      metrics:
+        - total_sales
+        - profit_margin
+        - unique_customers
+        - order_count
+        - avg_order_value
+      group_by:
+        - Dimension('postal_codes_dimension__state_name')
+        - Dimension('postal_codes_dimension__region')
+        - Dimension('postal_codes_dimension__city')
+
+  - name: regional_performance
+    label: Regional Performance
+    description: |
+      High-level regional performance summary.
+      Aggregates sales metrics by geographic region.
+      Use for regional executive reporting and comparative analysis.
+    query_params:
+      metrics:
+        - total_sales
+        - total_profit
+        - profit_margin
+        - unique_customers
+      group_by:
+        - Dimension('postal_codes_dimension__region')
+
+  # --------
+  # TIME-BASED ANALYSIS
+  # --------
+  - name: monthly_sales_trends
+    label: Monthly Sales Trends
+    description: |
+      Month-over-month sales trends showing revenue, profit, and volume.
+      Use for seasonality analysis and year-over-year comparisons.
+    query_params:
+      metrics:
+        - total_sales
+        - total_profit
+        - total_units_sold
+        - order_count
+      group_by:
+        - TimeDimension('sales_fact__order_date', 'month')
+        - Dimension('dates_dimension__calendar_year')
+
+  - name: daily_performance_by_day_of_week
+    label: Daily Performance by Day of Week
+    description: |
+      Sales performance analysis by day of week.
+      Helps identify weekly patterns and peak sales days.
+      Use for resource planning and promotion timing.
+    query_params:
+      metrics:
+        - total_sales
+        - order_count
+        - unique_customers
+        - avg_order_value
+      group_by:
+        - Dimension('dates_dimension__day_name')
+
+  # --------
+  # CUSTOMER & ORDER ANALYSIS
+  # --------
+  - name: customer_order_patterns
+    label: Customer Order Patterns
+    description: |
+      Customer ordering patterns by time period and geography.
+      Shows customer acquisition and order frequency by location.
+      Use for customer segmentation and retention analysis.
+    query_params:
+      metrics:
+        - unique_customers
+        - order_count
+        - avg_order_value
+        - avg_units_per_order
+      group_by:
+        - TimeDimension('sales_fact__order_date', 'month')
+        - Dimension('postal_codes_dimension__geography')
+
+  - name: fulfillment_performance
+    label: Fulfillment Performance
+    description: |
+      Shipping and fulfillment analysis by ship mode and time.
+      Tracks transit times and order volume by shipping method.
+      Use for logistics optimization and service level monitoring.
+    query_params:
+      metrics:
+        - order_count
+        - avg_transit_time
+        - total_sales
+      group_by:
+        - Dimension('sales_fact__ship_mode')
+        - TimeDimension('sales_fact__ship_date', 'month')
+
+  # --------
+  # PROFITABILITY ANALYSIS
+  # --------
+  - name: profitability_by_dimension
+    label: Profitability by Dimension
+    description: |
+      Profit analysis across multiple dimensions (category, region, factory).
+      Shows margin and profitability metrics by key business attributes.
+      Use for profitability optimization and pricing analysis.
+    query_params:
+      metrics:
+        - total_sales
+        - total_profit
+        - total_cost
+        - profit_margin
+      group_by:
+        - Dimension('products_dimension__category')
+        - Dimension('postal_codes_dimension__state_name')
+        - Dimension('products_dimension__factory')
+
