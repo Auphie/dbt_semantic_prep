@@ -1,4 +1,4 @@
-WITH big_table AS (
+WITH sales AS (
 
     SELECT
         {{ dbt_utils.star(from=ref('fct_sales'), except=["product_key", "postal_code_key"]) }},
@@ -14,19 +14,31 @@ WITH big_table AS (
     LEFT JOIN {{ ref('dim_postal_codes') }} AS postal_codes
         ON sales.postal_code_key = postal_codes.postal_code_key
 
+    WHERE
+        products.division <> 'test'
+        AND postal_codes.postal_code <> '00000'
+
 ),
 
 final AS (
 
-    {{ aggregate_semantic_metrics(
-        input_name='big_table',
-        dimensions=['factory'],
-        time_dimension="DATE_PART('year', order_date) = 2021",
-        filters=["state_name = 'California'"],
-        unique_metrics=['order_id', 'customer_id'],
-        cummulative_metrics=['order_amount', 'gross_profit'],
-        ratio_metrics=[]
-    ) }}
+    SELECT
+        factory,
+        product_id,
+        product_name,
+        division,
+        unit_price,
+        unit_cost,
+        state_name,
+        city,
+        postal_code,
+        order_id,
+        customer_id,
+        order_date,
+        order_amount,
+        gross_profit
+
+    FROM sales
 
 )
 
