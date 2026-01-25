@@ -75,7 +75,6 @@ final AS (
 
     SELECT
         {{ dbt_utils.generate_surrogate_key(['date_key', 'factory']) }} AS daily_sales_id,
-        date_key,
         factory,
         daily_avg_transit_days,
         daily_sales_amount,
