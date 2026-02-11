@@ -31,7 +31,7 @@ semantic_models:
       - name: sale_id
         type: primary
         expr: sale_id
-      - name: product
+      - name: product_key
         type: foreign
         expr: product_key
     dimensions:
@@ -61,7 +61,7 @@ entities:
   - name: sale_id
     type: primary
     expr: sale_id
-  - name: product
+  - name: product_key
     type: foreign
     expr: product_key
   - name: order_id
@@ -186,15 +186,16 @@ Pre-built query templates for common analyses, combining specific metrics and gr
 ```yaml
 saved_queries:
   - name: daily_sales_summary
-    description: "Daily sales summary by product and geography"
+    description: "Daily sales summary by product division and geography"
     query_params:
       metrics:
         - total_sales
+        - expedited_sales
         - total_profit
         - order_count
       group_by:
         - TimeDimension('sales_fact__order_date', 'day')
-        - Dimension('products_dimension__category')
+        - Dimension('products_dimension__division')
         - Dimension('postal_codes_dimension__state_name')
 ```
 
@@ -230,7 +231,7 @@ semantic_models:
       - name: sale_id
         type: primary
         expr: sale_id
-      - name: product
+      - name: product_key
         type: foreign
         expr: product_key
     
@@ -319,7 +320,7 @@ When referencing dimensions in metrics or saved queries, use:
 Examples:
 - `sales_fact__order_date`
 - `postal_codes_dimension__state_name`
-- `products_dimension__category`
+- `products_dimension__division`
 
 ### 3. Time Dimensions
 
@@ -364,12 +365,13 @@ Apply business logic at the metric level:
 
 ```yaml
 metrics:
-  - name: high_value_orders
+  - name: expedited_sales
     type: simple
+    label: Expedited Sales
     type_params:
-      measure: order_count
+      measure: order_amount_sum
     filter: |
-      {{ Dimension('sales_fact__order_amount') }} > 1000
+      {{ Dimension('sales_fact__ship_mode') }} in ('Express', 'Overnight')
 ```
 
 ### 7. Documentation
@@ -448,7 +450,7 @@ metrics:
 mf query \
   --metric total_sales \
   --group-by order_date \
-  --where "{{ Dimension('state_name') }} = 'California'"
+  --where "{{ Dimension('postal_codes_dimension__state_name') }} = 'California'"
 
 # Run a saved query
 mf query --saved-query daily_sales_summary
@@ -459,14 +461,15 @@ mf query --saved-query daily_sales_summary
 ```sql
 SELECT
   DATE_TRUNC('day', metric_time) AS order_date,
-  category,
+  division,
   state_name,
   total_sales,
+  expedited_sales,
   total_profit,
   order_count
 FROM {{ metrics(
-  metrics=['total_sales', 'total_profit', 'order_count'],
-  group_by=['order_date', 'category', 'state_name']
+  metrics=['total_sales', 'expedited_sales', 'total_profit', 'order_count'],
+  group_by=['order_date', 'division', 'state_name']
 ) }}
 ```
 
