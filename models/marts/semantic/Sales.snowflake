@@ -5,7 +5,7 @@ description: Daily sales metrics for reporting dashboard
 # A semantic model can contain one or more logical tables.
 tables:
   - name: fct_sales
-    description: '{{ doc("column_created_at") }}'
+    description: Fact table at sale-level grain.
     base_table:
       database: postgres
       schema: analytics
@@ -13,17 +13,26 @@ tables:
     time_dimensions:
       - name: order_date
         expr: order_date
-        description: '{% docs "order_date" %}'
+        description: Date when the order was placed.
         unique: false
         data_type: date
       - name: ship_date
         expr: ship_date
-        description: date when the order was shipped
+        description: Date when the order was shipped.
         unique: false
         data_type: date
+    dimensions:
+      - name: ship_mode
+        expr: ship_mode
+        description: Shipping method used for the order.
+        data_type: text
+      - name: customer_id
+        expr: customer_id
+        description: Customer identifier.
+        data_type: text
     measures:
       - name: order_amount
-        expr: "SUM(sales_amount)"
+        expr: "SUM(order_amount)"
         default_aggregation: sum
         description: "Total sales amount for the selected grain."
         format: currency
@@ -40,9 +49,9 @@ tables:
         default_aggregation: count distinct
         description: "Count of distinct orders."
       - name: total_transit_days
-        expr: "SUM(ship_date - order_date)"
+        expr: "SUM(transit_days)"
         default_aggregation: sum
-        description: "days between order and ship date."
+        description: "Total days between order and ship date."
 
   - name: dim_postal_codes
     description: Dimension table containing postal code details.
@@ -66,15 +75,19 @@ tables:
         expr: city
         description: "City name for the postal code."
         data_type: text
+      - name: region
+        expr: state_id
+        description: "State code used for region grouping."
+        data_type: text
     filters:
-    - name: western_region
-      synonyms:
-        - pacific region
-        - west coast
-      description: >
-        Filter to restrict data to orders from the west coast of the USA.
-      comments: Used for analysis focusing on Western American customers.
-      expr: state_name IN ('California', 'Oregon', 'Washington', 'Nevada', 'Idaho', 'Utah', 'Arizona', 'Alaska', 'Hawaii')
+      - name: western_region
+        synonyms:
+          - pacific region
+          - west coast
+        description: >
+          Filter to restrict data to orders from the west coast of the USA.
+        comments: Used for analysis focusing on Western American customers.
+        expr: state_name IN ('California', 'Oregon', 'Washington', 'Nevada', 'Idaho', 'Utah', 'Arizona', 'Alaska', 'Hawaii')
 
   - name: dim_products
     description: Dimension table containing product details.
@@ -90,19 +103,20 @@ tables:
         synonyms:
           - product name
           - item
+      - name: division
+        expr: division
+        description: "Product division."
+        data_type: text
       - name: factory
         expr: factory
         description: "Factory name that produced the product."
         data_type: text
-        synonyms:
-          - factory name
-          - manufacturing plant
 
   - name: dim_dates
     description: Date dimension table.
     base_table:
       database: postgres
-      schema: core
+      schema: base
       table: dim_dates
     time_dimensions:
       - name: date_key
@@ -119,7 +133,7 @@ tables:
         expr: week_of_year
         description: "Week number of the year."
         data_type: integer
-      - name: yoy date -- last year
+      - name: yoy_date_last_year
         expr: last_yoy_date
         description: "Date key for the same date last year."
         data_type: date
@@ -133,11 +147,21 @@ relationships:
         right_column: postal_code_key
     join_type: left_outer
     relationship_type: many_to_one
+
   - name: sales_to_products
     left_table: fct_sales
     right_table: dim_products
     relationship_columns:
       - left_column: product_key
         right_column: product_key
+    join_type: left_outer
+    relationship_type: many_to_one
+
+  - name: sales_to_dates
+    left_table: fct_sales
+    right_table: dim_dates
+    relationship_columns:
+      - left_column: order_date
+        right_column: date_key
     join_type: left_outer
     relationship_type: many_to_one

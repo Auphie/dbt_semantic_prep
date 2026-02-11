@@ -76,12 +76,6 @@ Dimension('{semantic_model_name}__{dimension_name}')
 where: "{{ Dimension('sales_fact__customer_id') }} = 'CUST123'"
 ```
 
-**Usage Examples**:
-```yaml
-# Group by transit time buckets
-- Dimension('sales_fact__transit_days')
-```
-
 ---
 
 ## Semantic Model: `products_dimension`
@@ -95,16 +89,6 @@ where: "{{ Dimension('sales_fact__customer_id') }} = 'CUST123'"
 - **Source Column**: `product_name`
 - **Type**: Dimension
 - **Description**: Product display name
-
-#### `products_dimension__category`
-- **Source Column**: `category`
-- **Type**: Dimension
-- **Description**: High-level product category
-
-#### `products_dimension__subcategory`
-- **Source Column**: `subcategory`
-- **Type**: Dimension
-- **Description**: Sub-classification within category
 
 #### `products_dimension__division`
 - **Source Column**: `division`
@@ -123,8 +107,8 @@ where: "{{ Dimension('sales_fact__customer_id') }} = 'CUST123'"
 
 **Usage Examples**:
 ```yaml
-# Product category analysis
-- Dimension('products_dimension__category')
+# Product-level analysis
+- Dimension('products_dimension__product_name')
 
 # Filter by specific division
 where: "{{ Dimension('products_dimension__division') }} = 'Electronics'"
@@ -221,7 +205,7 @@ where: "{{ Dimension('postal_codes_dimension__state_id') }} IN ('CA', 'OR', 'WA'
 #### `dates_dimension__calendar_date`
 - **Source Column**: `date_key`
 - **Type**: Dimension
-Description: Full date value
+- **Description**: Full date value
 
 #### `dates_dimension__calendar_year`
 - **Source Column**: `date_year`
@@ -250,8 +234,8 @@ Description: Full date value
 
 #### `dates_dimension__full_day_name`
 - **Source Column**: `full_day_name`
-- **Description**: Dimension
-Description: Full day name (Monday, Tuesday, etc.)
+- **Type**: Dimension
+- **Description**: Full day name (Monday, Tuesday, etc.)
 
 #### `dates_dimension__week_of_year`
 - **Source Column**: `week_of_year`
@@ -301,10 +285,11 @@ Here's how to use these dimension references in a saved query:
 ```yaml
 saved_queries:
   - name: regional_monthly_sales
-    description: "Monthly sales by region and product category"
+    description: "Monthly sales by region and product division"
     query_params:
       metrics:
         - total_sales
+        - expedited_sales
         - total_profit
         - profit_margin
         - order_count
@@ -317,7 +302,7 @@ saved_queries:
         - Dimension('postal_codes_dimension__state_name')
         
         # Product dimensions
-        - Dimension('products_dimension__category')
+        - Dimension('products_dimension__division')
 ```
 
 ---
@@ -359,6 +344,6 @@ metrics:
 
 When new dimensions are added to semantic models, update this file to keep the reference current. The structure should match the actual semantic model definitions in `Sales.metricflow.yml`.
 
-**Last Updated**: January 14, 2026  
-**Dimensions Defined**: 30  
+**Last Updated**: February 11, 2026  
+**Dimensions Defined**: 29  
 **Semantic Models**: 4
