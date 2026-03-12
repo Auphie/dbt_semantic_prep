@@ -113,9 +113,11 @@ These are aligned to actual core-model columns (`sale_id`, `order_amount`, `orde
 
 ## Quick Start
 
-1. Install dependencies:
+1. Install dependencies using the Makefile (creates `.env_duck`):
 
 ```bash
+make install
+source .env_duck/bin/activate
 dbt deps
 ```
 
@@ -139,6 +141,41 @@ dbt show --select fct_sales --limit 1
 dbt show --select dim_products --limit 1
 dbt show --select dim_postal_codes --limit 1
 dbt show --select dim_dates --limit 1
+```
+
+## DuckDB: Querying Tables
+
+You can query built tables directly in DuckDB using the CLI:
+
+```bash
+duckdb duck_dev.duckdb
+```
+
+```sql
+SHOW TABLES;
+SELECT * FROM base.fct_sales LIMIT 5;
+SELECT * FROM analytics.fct_daily_sales LIMIT 5;
+```
+
+You can also query via dbt:
+
+```bash
+dbt show --select fct_sales --limit 5
+```
+
+## DuckDB: Export to CSV
+
+Export a single table or query:
+
+```sql
+COPY (SELECT * FROM analytics.fct_daily_sales)
+TO 'fct_daily_sales.csv' (HEADER, DELIMITER ',');
+```
+
+Export the entire database (one CSV per table):
+
+```sql
+EXPORT DATABASE 'duckdb_export' (FORMAT CSV);
 ```
 
 ## Semantic Demo Checklist (dbt vs Snowflake)
