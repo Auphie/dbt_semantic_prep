@@ -27,7 +27,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 seeds:
   dbt_semantic_prep: # you must include the project name
-    schema: raw
+    +schema: raw
     uszips:
       +column_types:
         zip: varchar(10)

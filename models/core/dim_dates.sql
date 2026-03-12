@@ -1,31 +1,31 @@
 WITH date_spine AS (
     {{ date_spine(datepart="day",
-        start_date="to_date('01/01/2018', 'MM/DD/YYYY')",
-        end_date="current_date + interval '2 year'"
+        start_date="cast('2018-01-01' as date)",
+        end_date="cast(today() + interval 2 year as date)"
      ) }}
 ),
 
 base AS (
 
     SELECT
-        date_day::date AS date_key,
+        cast(date_day as date) AS date_key,
         date_day,
-        to_char(date_day, 'Dy') AS day_name,
-        to_char(date_day, 'FMDay') AS full_day_name,
-        DATE_PART('month', date_day) AS date_month,
-        DATE_PART('year', date_day) AS date_year,
+        strftime(date_day, '%a') AS day_name,
+        dayname(date_day) AS full_day_name,
+        extract(month from date_day)::int AS date_month,
+        extract(year from date_day)::int AS date_year,
         extract(isoyear from date_day)::int AS year_iso,
-        DATE_PART('day', date_day)::int AS day_of_month,
-        extract(isodow from date_day)::int AS day_of_week,
-        extract(doy from date_day)::int AS day_of_year,
-        extract(week from date_day)::int AS week_of_year,
+        extract(day from date_day)::int AS day_of_month,
+        isodow(date_day)::int AS day_of_week,
+        dayofyear(date_day)::int AS day_of_year,
+        weekofyear(date_day)::int AS week_of_year,
 
-        date_trunc('week', date_day)::date AS first_day_of_week,
-        date_trunc('month', date_day)::date AS first_day_of_month,
-        min(date_day) OVER (PARTITION BY DATE_PART('year', date_day)) AS first_day_of_year,
-        max(date_day) OVER (PARTITION BY DATE_PART('year', date_day), DATE_PART('month', date_day)) AS last_day_of_month,
-        max(date_day) OVER (PARTITION BY date_trunc('week', date_day)::date) AS last_day_of_week,
-        max(date_day) OVER (PARTITION BY DATE_PART('year', date_day)) AS last_day_of_year
+        cast(date_trunc('week', date_day) as date) AS first_day_of_week,
+        cast(date_trunc('month', date_day) as date) AS first_day_of_month,
+        min(date_day) OVER (PARTITION BY extract(year from date_day)) AS first_day_of_year,
+        max(date_day) OVER (PARTITION BY extract(year from date_day), extract(month from date_day)) AS last_day_of_month,
+        max(date_day) OVER (PARTITION BY cast(date_trunc('week', date_day) as date)) AS last_day_of_week,
+        max(date_day) OVER (PARTITION BY extract(year from date_day)) AS last_day_of_year
 
     FROM date_spine
 

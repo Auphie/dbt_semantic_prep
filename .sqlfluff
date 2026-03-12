@@ -1,5 +1,5 @@
 [sqlfluff]
-dialect = postgres
+dialect = duckdb
 template = dbt
 max_line_length = 150
 sql_file_exts = .sql,.sql.j2,.dml,.ddl
